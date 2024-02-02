@@ -6,49 +6,38 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract PeachTreeERC721 is ERC721, Ownable {
+contract SnackERC721 is ERC721, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
-    // Timestamp for activating redemption
-    // uint256 public activationTimestamp = 1691046000;
+    // Timestamp for activating minting
     uint256 public activationTimestamp = 1688367660;
 
-    // Timestamp for deactivating sale and redemption
-    uint256 public deactivationTimestamp = 1694070000;
+    // Timestamp for deactivating mint
+    uint256 public deactivationTimestamp = 1709402891;
 
     // Address of farm safe
-    // address public beneficiary = 0xE9c47D17233E6aFD3d9020E0F8e2a86C2718dcfE;
     address public beneficiary = 0xEB8C7E21b847a7B9CA33209e9e4EdCc5e45054b4;
 
     // Max supply of total tokens
-    uint256 public maxSupply = 1000;
+    uint256 public maxSupply = 50;
 
-    // Mint price of each token (0.088 ETH)
-    // uint256 public mintPrice = 88000000000000000;
-    uint256 public mintPrice = 10000000000000000;
+    // Mint price of each token
+    uint256 public mintPrice = 1000000000000000;
 
     // URI for the contract metadata
-    string private _contractURI = "ipfs://Qmf2uCH5DCnMDB64z5rRW7idgfZSY25T5bmNEukir1zC6g";
+    string private _contractURI = "ipfs://QmSLUeCuGtbWvm5zbTqBRfnJWr7nqmW9hf1bC3Fci5rRNs";
 
-    // baseURI_ String to prepend to unredeemed token IDs
-    string private _baseURIUnredeemed = "ipfs://QmZcHzytDyfzZe2wxR2PHoaJVZELWuergGFwXiPTrFncj7";
-    //                                   ipfs://QmZcHzytDyfzZe2wxR2PHoaJVZELWuergGFwXiPTrFncj7
+    // baseURI_ String to prepend to token IDs
+    string private baseURI = "ipfs://QmagNNffG2oGEcydVxoFEqfjrLSc55XdhwZu4eC4hnTPwe";
 
-    // baseURI_ String to prepend to redeemed token IDs. Revealed after redeem window is open.
-    // string private _baseURIRedeemed = "";
-    string private _baseURIRedeemed = "ipfs://QmbGVgzBWn6Vi4c6rZ3sefy61b6M7J3YinGCrDrBTPNcdo";
-    //                                     ipfs://QmbGVgzBWn6Vi4c6rZ3sefy61b6M7J3YinGCrDrBTPNcdo
     // Indicates if Metadata uri is frozen
     bool public metdataFrozen = false;
-
-    // Mapping of tokenID to bool
-    mapping(uint256 => bool) public redeems;
 
     /**
      * @dev Initializes contract
      */
-    constructor() ERC721("Peaches", "PEACH") {}
+    constructor() ERC721("Snacks", "SNACK") {}
 
     /**
      * @dev Mints token to sender
@@ -58,7 +47,7 @@ contract PeachTreeERC721 is ERC721, Ownable {
      * - `nextTokenID must be less than the `maxSupply`
      * - `deactivationTimestamp` must be greater than the current block time
      */
-    function harvest() public payable {
+    function mint() public payable {
         require(mintPrice == msg.value, "Incorrect payment amount");
         require(deactivationTimestamp > block.timestamp, "Minting has ended");
 
@@ -79,7 +68,7 @@ contract PeachTreeERC721 is ERC721, Ownable {
      *
      * - `owner` must be function caller
      */
-    function harvestTo(address[] memory _addresses) public onlyOwner {
+    function mintTo(address[] memory _addresses) public onlyOwner {
         require(deactivationTimestamp > block.timestamp, "Minting has ended");
         for (uint i = 0; i < _addresses.length; i++) {
             uint256 tokenId = _tokenIdCounter.current();
@@ -87,48 +76,6 @@ contract PeachTreeERC721 is ERC721, Ownable {
 
             _safeMint(_addresses[i], tokenId + 1);
             _tokenIdCounter.increment();
-        }
-    }
-
-    /**
-     * @dev Marks tokenID as redeemed
-     * @param _tokenId Timestamp to determine start of sale
-     *
-     * Requirements:
-     * - `tokenId` holder must be function caller
-     * - `tokenId` must exist
-     * - 'tokenId` must not already be redeemed
-     *  - minting/redemption window must still be open
-     */
-    function redeem(uint256 _tokenId) public {
-        require(activationTimestamp <= block.timestamp, "Redemption has not started");
-        require(deactivationTimestamp > block.timestamp, "Redemption has ended");
-        require(_exists(_tokenId), "ERC721Metadata: URI query for nonexistent token");
-        require(!redeems[_tokenId], "Token is already redeemed");
-
-        address tokenOwner = ownerOf(_tokenId);
-        require(tokenOwner == msg.sender, "msg.sender is not the owner of the token");
-
-        redeems[_tokenId] = true;
-    }
-
-    /**
-     * @dev Marks tokenIDs as redeemed
-     * @param _tokenIds Array of tokenIds to mark redeemed
-     *
-     * Requirements:
-     * - `owner` must be function caller
-     * - `tokenId` must exist
-     * - 'tokenId` must not already be redeemed
-     *  - minting/redemption window must still be open
-     */
-    function batchRedeem(uint256[] memory _tokenIds) public onlyOwner {
-        require(deactivationTimestamp > block.timestamp, "Redemption has ended");
-
-        for (uint i = 0; i < _tokenIds.length; i++) {
-            if (_exists(_tokenIds[i])) {
-                redeems[_tokenIds[i]] = true;
-            }
         }
     }
 
@@ -166,22 +113,16 @@ contract PeachTreeERC721 is ERC721, Ownable {
     }
 
     /**
-     * @dev Sets the baseURIS
+     * @dev Sets the baseURI
      * @param _newBaseURI Metadata URI used for overriding initialBaseURI
-     * @param _newBaseURIRedeemed Metadata URI used for overriding initialBaseURIRedeemed
      * @param _isRedeemSetter Indicates if is the final URI setting for redeemed tokenIds. Will freeze metadata.
      *
      * Requirements:
      *
      * - `owner` must be function caller
      */
-    function setBaseURIS(
-        string memory _newBaseURI,
-        string memory _newBaseURIRedeemed,
-        bool _isRedeemSetter
-    ) public onlyOwner {
-        _baseURIUnredeemed = _newBaseURI;
-        _baseURIRedeemed = _newBaseURIRedeemed;
+    function setBaseURI(string memory _newBaseURI, bool _isRedeemSetter) public onlyOwner {
+        baseURI = _newBaseURI;
         if (_isRedeemSetter) {
             setMetadataFrozen();
         }
@@ -189,6 +130,7 @@ contract PeachTreeERC721 is ERC721, Ownable {
 
     /**
      * @dev Sets the metdataFrozen to true
+     * TODO: event?
      */
     function setMetadataFrozen() private {
         metdataFrozen = true;
@@ -217,13 +159,9 @@ contract PeachTreeERC721 is ERC721, Ownable {
     function tokenURI(uint256 _tokenId) public view override returns (string memory) {
         require(_exists(_tokenId), "ERC721Metadata: URI query for nonexistent token");
 
-        string memory baseURIForToken = _baseURIUnredeemed;
-        if (redeems[_tokenId]) {
-            baseURIForToken = _baseURIRedeemed;
-        }
         return
-            bytes(baseURIForToken).length > 0
-                ? string(abi.encodePacked(baseURIForToken, "/", Strings.toString(_tokenId), ".json"))
+            bytes(baseURI).length > 0
+                ? string(abi.encodePacked(baseURI, "/", Strings.toString(_tokenId), ".json"))
                 : "";
     }
 
@@ -232,6 +170,13 @@ contract PeachTreeERC721 is ERC721, Ownable {
      */
     function contractURI() external view returns (string memory) {
         return _contractURI;
+    }
+
+    /**
+     * @dev See {IERC721-baseURI}.
+     */
+    function _baseURI() internal view virtual override returns (string memory) {
+        return baseURI;
     }
 
     /**
