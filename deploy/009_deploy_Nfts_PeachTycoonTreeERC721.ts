@@ -5,6 +5,8 @@ const deployFn: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, network } = hre;
   const { deployer } = await hre.getNamedAccounts();
 
+  console.log("deployer", deployer);
+
   console.log("\nDeploying PeachTycoonTreeERC721 on network:", network.name);
 
   const shamanDeployed = await deployments.deploy("PeachTycoonTreeERC721", {

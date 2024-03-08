@@ -6,34 +6,37 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+import "./base64.sol";
+
 contract PeachTycoonTreeERC721 is ERC721, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
-    uint256 public mintStart = 1688367660; /* Timestamp for activating minting */
-    uint256 public mintEnd = 1709402891; /* Timestamp for deactivating mint */
-    address public farmAccount = 0xEB8C7E21b847a7B9CA33209e9e4EdCc5e45054b4; /* Address of farm safe */
-    address public farmerCoopAccount = 0xEB8C7E21b847a7B9CA33209e9e4EdCc5e45054b4; /* Address of farmer's coop safe */
-    uint256 public mintPrice = 1000000000000000; /* Mint price of each token */
-    uint256 public farmerCoopCut = 10000000000000; /* Farmer co-op cut */
-    uint8 public season = 0;
-    /* seasons for metadata toggle
-    0 = spring
-    1 = summer
-    2 = harvest
-    3 = winter */
-
+    uint256 public mintStart = 1709341200; /* Timestamp for activating minting */
+    uint256 public mintEnd = 1714608000; /* Timestamp for deactivating mint */
+    address public farmAccount = 0xB1344e792dd923486B7b9665f05454f6A6872A4b; /* Address of farm safe */
+    address public farmerCoopAccount = 0xe172278c17F0E58124F2b3201562348FF677c365; /* Address of farmer's coop safe */
+    uint256 public maxSupply = 200; /* Max token supply available to mint*/
+    uint256 public mintPrice = 88800000000000000; /* Mint price of each token */
+    uint256 public farmerCoopCut = 2664000000000000; /* Farmer co-op cut */
+    uint8 public currentSeason = 0; /* seasons for metadata toggle */
     string private _contractURI =
-        "ipfs://QmSLUeCuGtbWvm5zbTqBRfnJWr7nqmW9hf1bC3Fci5rRNs"; /* URI for the contract metadata */
-    string private springBaseURI = ""; /* tokenuri to prepend to token ids in the spring season */
-    string private summerBaseURI = ""; /* tokenuri to prepend to token ids in the summer season */
-    string private harvestBaseURI = ""; /* tokenuri to prepend to token ids in the harvest season */
-    string private winterBaseURI = ""; /* tokenuri to prepend to token ids in the winter season */
+        "ipfs://QmP6cbCzEJprWe56XJG6hoDv9WUjBonRoybE2UK27LvgSd"; /* URI for the contract metadata */
+    string private baseURI = "ipfs://QmbCivk5YRHrCn9U1VR9cQPz9ZRiGijvPBbRw5ayB5uPUc"; /* url to build token images */
+    string[] private trunks = ["The Proud Peacher", "Peachicus Magnificus", unicode"Big ol` Peachy"];
+    string[] private critters = ["None", "Bear", "Fox", "Racoon", "Squirrel", "Butterfly", "Hummingbird"];
+    string[] private seasons = ["Winter", "Spring", "Summer"];
+
+    mapping(uint256 => TokenMeta) public tokenMetas; /*maps `tokenId` to struct details*/
+
+    // DATA STRUCTURES
+    struct TokenMeta {
+        uint8 trunkId /*indicator of the trunk type/name*/;
+        uint8 critterId /*indicator of the critter name*/;
+    }
 
     // EVENTS
-    event MetadataUpdate(uint256 _tokenId);
     event BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId);
-    // To refresh a whole collection, emit _toTokenId with type(uint256).max
 
     /**
      * @dev Initializes contract
@@ -42,20 +45,29 @@ contract PeachTycoonTreeERC721 is ERC721, Ownable {
 
     /**
      * @dev Mints token to sender
+     * @param _trunkId id of the trunk type
+     * @param _critterId id of the critter
+     *
      * Requirements:
      *
      * - `msg.value` must be exact payment amount in wei
      * - `mintStart` must be greater than the current block time
+     * - `trunkId` must be less than 2
+     * - `critterId` must be less than 5
      */
-    function mint() public payable {
+    function mint(uint8 _trunkId, uint8 _critterId) public payable {
         require(mintPrice == msg.value, "Incorrect payment amount");
-        require(mintStart > block.timestamp, "Minting has ended");
+        require(mintStart <= block.timestamp, "Minting has not started");
+        require(mintEnd > block.timestamp, "Minting has ended");
+        require(_trunkId < 3, "Invalid trunk");
+        require(_critterId < 7, "Invalid critter");
 
         uint256 tokenId = _tokenIdCounter.current();
+        require(tokenId < maxSupply, "No more tokens available to mint");
 
         uint amountMinusFee = msg.value - farmerCoopCut;
 
-        (bool feeSent, ) = farmAccount.call{ value: farmerCoopCut }("");
+        (bool feeSent, ) = farmerCoopAccount.call{ value: farmerCoopCut }("");
         require(feeSent, "Fee not sent");
 
         (bool sent, ) = farmAccount.call{ value: amountMinusFee }("");
@@ -63,34 +75,21 @@ contract PeachTycoonTreeERC721 is ERC721, Ownable {
 
         _safeMint(msg.sender, tokenId + 1);
         _tokenIdCounter.increment();
-    }
-
-    /**
-     * @dev Mints 1 nft to multiple addresses. For minting some tokens to our peach farmers.
-     * @param _addresses List of addresses to mint to
-     * Requirements:
-     *
-     * - `owner` must be function caller
-     */
-    function mintTo(address[] memory _addresses) public onlyOwner {
-        require(mintStart > block.timestamp, "Minting has ended");
-        for (uint i = 0; i < _addresses.length; i++) {
-            uint256 tokenId = _tokenIdCounter.current();
-
-            _safeMint(_addresses[i], tokenId + 1);
-            _tokenIdCounter.increment();
-        }
+        tokenMetas[tokenId + 1] = TokenMeta(_trunkId, _critterId);
     }
 
     /**
      * @dev Sets the price
      * @param _newPrice Price for overiding original price
+     * @param _newFarmerCoopCut Cut for overiding original cut
+     *
      *
      * Requirements:
      * - `owner` must be function caller
      */
-    function setPrice(uint256 _newPrice) public onlyOwner {
+    function setPrice(uint256 _newPrice, uint256 _newFarmerCoopCut) public onlyOwner {
         mintPrice = _newPrice;
+        farmerCoopCut = _newFarmerCoopCut;
     }
 
     /**
@@ -125,31 +124,24 @@ contract PeachTycoonTreeERC721 is ERC721, Ownable {
      *
      */
     function setSeason(uint8 _newSeason) public onlyOwner {
-        require(_newSeason > 4, "invalid season");
-        season = _newSeason;
+        require(_newSeason < 3, "invalid season");
+        currentSeason = _newSeason;
+
+        emit BatchMetadataUpdate(1, type(uint256).max);
     }
 
     /**
-     * @dev Sets the baseURIS
-     * @param _newSpringBaseURI Metadata URI used for overriding springBaseURI
-     * @param _newSummerBaseURI Metadata URI used for overriding summerBaseURI
-     * @param _newHarvestBaseURI Metadata URI used for overriding harvestBaseURI
-     * @param _newWinterBaseURI Metadata URI used for overriding winterBaseURI
+     * @dev Sets the baseURI
+     * @param _newBaseURI Metadata URI used for overriding baseURI
      *
      * Requirements:
      *
      * - `owner` must be function caller
      */
-    function setBaseURIS(
-        string memory _newSpringBaseURI,
-        string memory _newSummerBaseURI,
-        string memory _newHarvestBaseURI,
-        string memory _newWinterBaseURI
-    ) public onlyOwner {
-        springBaseURI = _newSpringBaseURI;
-        summerBaseURI = _newSummerBaseURI;
-        harvestBaseURI = _newHarvestBaseURI;
-        winterBaseURI = _newWinterBaseURI;
+    function setBaseURI(string memory _newBaseURI) public onlyOwner {
+        baseURI = _newBaseURI;
+
+        emit BatchMetadataUpdate(1, type(uint256).max);
     }
 
     /**
@@ -175,21 +167,43 @@ contract PeachTycoonTreeERC721 is ERC721, Ownable {
     function tokenURI(uint256 _tokenId) public view override returns (string memory) {
         require(_exists(_tokenId), "ERC721Metadata: URI query for nonexistent token");
 
-        string memory baseURIForToken = springBaseURI;
-        if (season == 1) {
-            baseURIForToken = summerBaseURI;
-        }
-        if (season == 2) {
-            baseURIForToken = harvestBaseURI;
-        }
-        if (season == 3) {
-            baseURIForToken = winterBaseURI;
-        }
+        string memory seasonName = seasons[currentSeason];
+        string memory trunkName = trunks[tokenMetas[_tokenId].trunkId];
+        string memory critterName = critters[tokenMetas[_tokenId].critterId];
 
-        return
-            bytes(baseURIForToken).length > 0
-                ? string(abi.encodePacked(baseURIForToken, "/", Strings.toString(_tokenId), ".json"))
-                : "";
+        string memory imgPath = string(
+            abi.encodePacked(
+                baseURI,
+                "/",
+                seasonName,
+                "/",
+                Strings.toString(tokenMetas[_tokenId].trunkId),
+                "/",
+                Strings.toString(tokenMetas[_tokenId].critterId),
+                ".png"
+            )
+        );
+
+        string memory metadata = string(
+            abi.encodePacked(
+                '{"name": "Peach Tycoon Tree #',
+                Strings.toString(_tokenId),
+                '", "description": "',
+                trunkName,
+                '", "image": "',
+                imgPath,
+                '", "external_url": "https://peachtycoon.com", "attributes":',
+                '[{"trait_type": "Name", "value":"',
+                trunkName,
+                '"}, {"trait_type": "Critter", "value":"',
+                critterName,
+                '"}, {"trait_type": "Season", "value":"',
+                seasonName,
+                '"}]}'
+            )
+        );
+
+        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(bytes(metadata))));
     }
 
     /**
