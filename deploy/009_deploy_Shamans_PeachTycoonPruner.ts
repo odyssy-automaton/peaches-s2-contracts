@@ -5,10 +5,10 @@ const deployFn: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, network } = hre;
   const { deployer } = await hre.getNamedAccounts();
 
-  console.log("\nDeploying mock SnackERC721 on network:", network.name);
+  console.log("\nDeploying mock PeachTycoonPruner on network:", network.name);
 
-  const shamanDeployed = await deployments.deploy("SnackERC721", {
-    contract: "SnackERC721",
+  const shamanDeployed = await deployments.deploy("PeachTycoonPruner", {
+    contract: "PeachTycoonPruner",
     from: deployer,
     args: [],
     // proxy: {
@@ -17,9 +17,9 @@ const deployFn: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     // },
     log: true,
   });
-  console.log("SnackERC721 deployment Tx ->", shamanDeployed.transactionHash);
+  console.log("PeachTycoonPruner deployment Tx ->", shamanDeployed.transactionHash);
 };
 
 export default deployFn;
-deployFn.id = "009_deploy_Mocks_SnackERC721"; // id required to prevent reexecution
-deployFn.tags = ["MocksSnackERC721"];
+deployFn.id = "009_deploy_Mocks_PeachTycoonPruner"; // id required to prevent reexecution
+deployFn.tags = ["ShamanPeachTycoonPruner"];

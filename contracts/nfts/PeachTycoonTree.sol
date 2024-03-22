@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import "./base64.sol";
+import "../utils/base64.sol";
 
 contract PeachTycoonTreeERC721 is ERC721, Ownable {
     using Counters for Counters.Counter;

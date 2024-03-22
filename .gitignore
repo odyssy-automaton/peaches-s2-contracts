@@ -20,5 +20,7 @@ coverage.json
 package-lock.json
 yarn.lock
 .dev
+.dev.md 
 
 artifacts/
+dev/
