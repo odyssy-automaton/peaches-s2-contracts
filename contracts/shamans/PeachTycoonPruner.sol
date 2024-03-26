@@ -4,32 +4,25 @@ pragma solidity ^0.8.7;
 import "@daohaus/baal-contracts/contracts/interfaces/IBaal.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-// - ownable - what needs to be updated?
-// -- -- end date, maybe price and cut?
-
-contract PeachTycoonPruner is ReentrancyGuard, Initializable {
+contract PeachTycoonPruner is ReentrancyGuard, Initializable, Ownable {
     string public constant name = "PeachTycoonPruner";
 
-    uint256 public pruneEnd = 1715639724;
-    uint256 public prunePrice = 1000000000000000;
-    uint256 public prunePriceERC20 = 10000000000000000;
+    uint256 public pruneEnd = 1713830400;
+    uint256 public prunePrice = 22000000000000000;
+    uint256 public prunePriceERC20 = 5200000000000000000000;
+    address public farmAccount = 0xB1344e792dd923486B7b9665f05454f6A6872A4b; /* Address of farm safe */
+    address public farmerCoopAccount = 0xe172278c17F0E58124F2b3201562348FF677c365; /* Address of farmer's coop safe */
+    uint256 public farmerCoopCut = 660000000000000; /* Farmer co-op cut */
+    uint256 public farmerCoopCutERC20 = 156000000000000000000; /* Farmer co-op cut */
+    uint256 public lootPerPrune = 75000000000000000000; /* Loot per pruning */
 
-    // address public farmAccount = 0xB1344e792dd923486B7b9665f05454f6A6872A4b; /* Address of farm safe */
-    address public farmAccount = 0x83aB8e31df35AA3281d630529C6F4bf5AC7f7aBF; /* Address of farm safe */
-
-    // address public farmerCoopAccount = 0xe172278c17F0E58124F2b3201562348FF677c365; /* Address of farmer's coop safe */
-    address public farmerCoopAccount = 0x83aB8e31df35AA3281d630529C6F4bf5AC7f7aBF; /* Address of farmer's coop safe */
-
-    uint256 public farmerCoopCut = 100000000000000; /* Farmer co-op cut */
-    uint256 public farmerCoopCutERC20 = 100000000000000; /* Farmer co-op cut */
-    uint256 public lootPerPrune = 75000000000000000000; /* Farmer co-op cut */
-
-    IBaal public baal = IBaal(0x112e54a494FCA06D71a5b253c9DDdbA6Dc9267FF);
-    IERC721 public treeNft = IERC721(0xB49a877D82c1f0133B0293dfd20eB54BEd07a290);
-    IERC20 public paymentERC20 = IERC20(0x53c8156592A64E949A4736c6D3309002fa0b2Aba);
+    IBaal public baal = IBaal(0x1503Bd5f6F082F7fBD36438CC416CD67849c0Bec);
+    IERC721 public treeNft = IERC721(0xA9d3c833df8415233e1626F29E33ccBA37d2A187);
+    IERC20 public paymentERC20 = IERC20(0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed);
 
     mapping(uint256 => uint8) public prunings; /*maps `tokenId` to prunings count*/
 
@@ -81,5 +74,21 @@ contract PeachTycoonPruner is ReentrancyGuard, Initializable {
         prunings[_tokenId] = 1;
 
         _mintTokens(msg.sender, lootPerPrune);
+    }
+
+    function setPruneEnd(uint256 _newPruneEnd) public onlyOwner {
+        pruneEnd = _newPruneEnd;
+    }
+
+    function setPrice(
+        uint256 _newPrunePrice,
+        uint256 _newPrunePriceERC20,
+        uint256 _newFarmerCoopCut,
+        uint256 _newFarmerCoopCutERC20
+    ) public onlyOwner {
+        prunePrice = _newPrunePrice;
+        prunePriceERC20 = _newPrunePriceERC20;
+        farmerCoopCut = _newFarmerCoopCut;
+        farmerCoopCutERC20 = _newFarmerCoopCutERC20;
     }
 }
