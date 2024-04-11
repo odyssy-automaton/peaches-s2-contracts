@@ -23,5 +23,5 @@ const deployFn: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 };
 
 export default deployFn;
-deployFn.id = "009_deploy_Nfts_PeachTycoonPeachERC721"; // id required to prevent reexecution
+deployFn.id = "001_deploy_Nfts_PeachTycoonPeachERC721"; // id required to prevent reexecution
 deployFn.tags = ["NftsPeachTycoonPeachERC721"];

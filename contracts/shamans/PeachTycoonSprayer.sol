@@ -98,7 +98,7 @@ contract PeachTycoonSprayer is ReentrancyGuard, Initializable, Ownable {
         }
     }
 
-    function setboostEnd(uint256 _newboostEnd) public onlyOwner {
+    function setBoostEnd(uint256 _newboostEnd) public onlyOwner {
         boostEnd = _newboostEnd;
     }
 
