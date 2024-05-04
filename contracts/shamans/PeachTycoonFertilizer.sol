@@ -50,7 +50,6 @@ contract PeachTycoonFertilzer is ReentrancyGuard, Initializable, Ownable {
 
         if (discountERC20.balanceOf(msg.sender) > 0) {
             require(msg.value == (boostPrice - boostDiscount), "incorrect payment amount");
-            amountMinusFee -= boostDiscount;
         } else {
             require(msg.value == boostPrice, "incorrect eth payment amount");
         }
@@ -77,7 +76,6 @@ contract PeachTycoonFertilzer is ReentrancyGuard, Initializable, Ownable {
 
         if (discountERC20.balanceOf(msg.sender) > 0) {
             require(_amount == (boostPriceERC20 - boostDiscountERC20), "incorrect erc20 payment amount");
-            amountMinusFee -= boostDiscountERC20;
         } else {
             require(_amount == boostPriceERC20, "incorrect erc20 payment amount");
         }
@@ -101,6 +99,10 @@ contract PeachTycoonFertilzer is ReentrancyGuard, Initializable, Ownable {
 
     function setBoostPerToken(uint256 _newBoostPerToken) public onlyOwner {
         boostPerToken = _newBoostPerToken;
+    }
+
+    function setFert(uint256 _tokenId) public onlyOwner {
+        fertilizations[_tokenId] += 1;
     }
 
     function setPrices(
