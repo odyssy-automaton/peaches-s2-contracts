@@ -11,28 +11,23 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 contract PeachTycoonSprayer is ReentrancyGuard, Initializable, Ownable {
     string public constant name = "PeachTycoonSprayer";
 
-    uint256 public boostEnd = 1717110000;
-    uint256 public boostPrice = 1000000000000000;
-    uint256 public boostPriceERC20 = 1000000000000000;
-    // address public farmAccount = 0xB1344e792dd923486B7b9665f05454f6A6872A4b; /* Address of farm safe */
-    // address public farmerCoopAccount = 0xe172278c17F0E58124F2b3201562348FF677c365; /* Address of farmer's coop safe */
-    address public farmAccount = 0xf100041473280B594D78AB5Fa4C44Ba81edd367B; /* Address of farm safe */
-    address public farmerCoopAccount = 0xf100041473280B594D78AB5Fa4C44Ba81edd367B; /* Address of farmer's coop safe */
+    uint256 public boostEnd = 1717221600;
+    uint256 public boostPrice = 11000000000000000;
+    uint256 public boostPriceERC20 = 1800000000000000000000;
+    address public farmAccount = 0xB1344e792dd923486B7b9665f05454f6A6872A4b; /* Address of farm safe */
+    address public farmerCoopAccount = 0xe172278c17F0E58124F2b3201562348FF677c365; /* Address of farmer's coop safe */
     uint256 private farmerCoopCut = 100000000000000; /* Farmer co-op cut */
-    uint256 private farmerCoopCutERC20 = 100000000000000; /* Farmer co-op cut */
-    uint256 private lootPerBoost = 75000000000000000000; /* Loot per fertilizer */
+    uint256 private farmerCoopCutERC20 = 54000000000000000000; /* Farmer co-op cut */
+    uint256 private lootPerBoost = 33000000000000000000; /* Loot per spray */
     uint256 public attemptsPerToken = 2; /* Attempts per token*/
     uint256 public totalSprayWins = 0; /* Count of all spray wins */
     uint256 public totalSprayAttempts = 0; /* Count of all spray attempts */
 
     uint256 private bugs;
 
-    // IBaal public baal = IBaal(0x1503Bd5f6F082F7fBD36438CC416CD67849c0Bec);
-    // IERC721 public treeNft = IERC721(0xA9d3c833df8415233e1626F29E33ccBA37d2A187);
-    // IERC20 public paymentERC20 = IERC20(0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed);
-    IBaal public baal = IBaal(0x112e54a494FCA06D71a5b253c9DDdbA6Dc9267FF);
-    IERC721 public treeNft = IERC721(0xB49a877D82c1f0133B0293dfd20eB54BEd07a290);
-    IERC20 public paymentERC20 = IERC20(0x53c8156592A64E949A4736c6D3309002fa0b2Aba);
+    IBaal public baal = IBaal(0x1503Bd5f6F082F7fBD36438CC416CD67849c0Bec);
+    IERC721 public treeNft = IERC721(0xA9d3c833df8415233e1626F29E33ccBA37d2A187);
+    IERC20 public paymentERC20 = IERC20(0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed);
 
     mapping(uint256 => uint8) public sprayAttempts; /*maps `tokenId` to spray attempt count*/
     mapping(uint256 => uint8) public sprayWins; /*maps `tokenId` to spray win count*/
