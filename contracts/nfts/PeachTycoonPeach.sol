@@ -6,34 +6,28 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-// // tokenmetadata update event for individual tokens
-// // how to handle royalties
-
 contract PeachTycoonPeachERC721 is ERC721, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
-    uint256 public redemptionStart = 1688367660; /* Timestamp for activating redemption */
-    uint256 public redemptionEnd = 1694070000; /* Timestamp for deactivating redemption */
-    address public farmAccount = 0xB1344e792dd923486B7b9665f05454f6A6872A4b; /* Address of farm safe */
-    address public farmerCoopAccount = 0xe172278c17F0E58124F2b3201562348FF677c365; /* Address of farmer's coop safe */
+    uint256 public redemptionStart = 1720191600; /* Timestamp for activating redemption */
+    uint256 public redemptionEnd = 1725116400; /* Timestamp for deactivating redemption */
     bool public mintOpen = true;
 
-    // how to enforce on transfer - here or in royalties from markeplace?
-    uint256 public transferFee = 10000000000; /* Farmer cut */
-    uint256 public farmerCoopTransferCut = 1000000000; /* Farmer co-op cut */
-
     string private _contractURI =
-        "ipfs://Qmf2uCH5DCnMDB64z5rRW7idgfZSY25T5bmNEukir1zC6g"; /* URI for the contract metadata */
+        "ipfs://QmazcTRtuwT6XFqaqjZd7xuDmE1p2es8Cngm9otG5fCSYU"; /* URI for the contract metadata */
     string private _baseURIBoxed =
-        "ipfs://QmZcHzytDyfzZe2wxR2PHoaJVZELWuergGFwXiPTrFncj7"; /* baseURI_ String to prepend to unredeemed token IDs */
+        "ipfs://Qme89C12KE1fSbJYu5kVipYuYcCrhXtqSPh2DaW6oVf5kK"; /* baseURI_ String to prepend to boxed token IDs */
     string private _baseURIUnredeemed =
-        "ipfs://QmZcHzytDyfzZe2wxR2PHoaJVZELWuergGFwXiPTrFncj7"; /* baseURI_ String to prepend to unredeemed token IDs */
+        "ipfs://QmXgLFvzKVAkNRLYFeJP9joJjQgQWyxjPrrW9zZxx3rGHQ"; /* baseURI_ String to prepend to unredeemed token IDs */
     string private _baseURIRedeemed =
-        "ipfs://QmbGVgzBWn6Vi4c6rZ3sefy61b6M7J3YinGCrDrBTPNcdo"; /* baseURI_ String to prepend to redeemed token IDs */
+        "ipfs://QmRTiEfKwqoAJyP8xaAU6LWMDWR3MVsvTZGZPECP6R8N9X"; /* baseURI_ String to prepend to redeemed token IDs */
 
     mapping(uint256 => uint8)
         public tokenState; /*  Mapping of tokenID to uint representing state: 0 (boxed), 1 (open), 2 (redeemed) */
+
+    // EVENTS
+    event MetadataUpdate(uint256 _tokenId);
 
     /**
      * @dev Initializes contract
@@ -74,6 +68,8 @@ contract PeachTycoonPeachERC721 is ERC721, Ownable {
         require(tokenOwner == msg.sender, "msg.sender is not the owner of the token");
 
         tokenState[_tokenId] = 1;
+
+        emit MetadataUpdate(_tokenId);
     }
 
     /**
@@ -90,12 +86,14 @@ contract PeachTycoonPeachERC721 is ERC721, Ownable {
         require(redemptionStart <= block.timestamp, "Redemption has not started");
         require(redemptionEnd > block.timestamp, "Redemption has ended");
         require(_exists(_tokenId), "ERC721Metadata: URI query for nonexistent token");
-        require(tokenState[_tokenId] < 2, "Token is already redeemed");
+        require(tokenState[_tokenId] == 1, "Token is already redeemed or not opened");
 
         address tokenOwner = ownerOf(_tokenId);
         require(tokenOwner == msg.sender, "msg.sender is not the owner of the token");
 
         tokenState[_tokenId] = 2;
+
+        emit MetadataUpdate(_tokenId);
     }
 
     /**

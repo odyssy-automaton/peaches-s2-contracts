@@ -13,11 +13,11 @@ contract PeachTycoonSprayer is ReentrancyGuard, Initializable, Ownable {
 
     uint256 public boostEnd = 1717221600;
     uint256 public boostPrice = 11000000000000000;
-    uint256 public boostPriceERC20 = 1800000000000000000000;
+    uint256 public boostPriceERC20 = 2040000000000000000000;
     address public farmAccount = 0xB1344e792dd923486B7b9665f05454f6A6872A4b; /* Address of farm safe */
     address public farmerCoopAccount = 0xe172278c17F0E58124F2b3201562348FF677c365; /* Address of farmer's coop safe */
     uint256 private farmerCoopCut = 100000000000000; /* Farmer co-op cut */
-    uint256 private farmerCoopCutERC20 = 54000000000000000000; /* Farmer co-op cut */
+    uint256 private farmerCoopCutERC20 = 72000000000000000000; /* Farmer co-op cut */
     uint256 private lootPerBoost = 33000000000000000000; /* Loot per spray */
     uint256 public attemptsPerToken = 2; /* Attempts per token*/
     uint256 public totalSprayWins = 0; /* Count of all spray wins */
@@ -115,5 +115,17 @@ contract PeachTycoonSprayer is ReentrancyGuard, Initializable, Ownable {
     function roll() private returns (bool) {
         bugs = (bugs + block.timestamp) % 100;
         return bugs <= 33;
+    }
+
+    function setPrices(
+        uint256 _newBoostPrice,
+        uint256 _newBoostPriceERC20,
+        uint256 _newFarmerCoopCut,
+        uint256 _newFarmerCoopCutERC20
+    ) public onlyOwner {
+        boostPrice = _newBoostPrice;
+        boostPriceERC20 = _newBoostPriceERC20;
+        farmerCoopCut = _newFarmerCoopCut;
+        farmerCoopCutERC20 = _newFarmerCoopCutERC20;
     }
 }
