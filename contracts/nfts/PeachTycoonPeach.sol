@@ -10,7 +10,7 @@ contract PeachTycoonPeachERC721 is ERC721, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
-    uint256 public redemptionStart = 1720191600; /* Timestamp for activating redemption */
+    uint256 public redemptionStart = 1721066400; /* Timestamp for activating redemption */
     uint256 public redemptionEnd = 1725116400; /* Timestamp for deactivating redemption */
     bool public mintOpen = true;
 
