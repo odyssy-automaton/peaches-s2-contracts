@@ -5,6 +5,8 @@ import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 contract ForgottenFruitBottle is ERC721, Ownable {
     using Counters for Counters.Counter;
@@ -16,6 +18,12 @@ contract ForgottenFruitBottle is ERC721, Ownable {
     uint256 public mintPrice = 10000000000000000; /* Mint price of each token */
     uint256 public maxSupply = 420; /* Max supply of tokens */
     address public farmAccount = 0xB1344e792dd923486B7b9665f05454f6A6872A4b; /* Address of farm safe */
+    uint256 private peachDiscount = 100000000000000; /* Discount on mint price for peach tree nft holders */
+    uint256 private podDiscount = 10000000000000; /* Discount on mint price for proof of drink nft holders */
+
+    IERC721 private treeNft = IERC721(0xA9d3c833df8415233e1626F29E33ccBA37d2A187);
+    IERC1155 private podNft = IERC1155(0xA9d3c833df8415233e1626F29E33ccBA37d2A187);
+    uint256 private podTokenId = 1; /* proof of drink 1155 token id */
 
     string private _contractURI =
         "ipfs://QmazcTRtuwT6XFqaqjZd7xuDmE1p2es8Cngm9otG5fCSYU"; /* URI for the contract metadata */
@@ -45,11 +53,14 @@ contract ForgottenFruitBottle is ERC721, Ownable {
      * - `deactivationTimestamp` must be greater than the current block time
      */
     function mint() public payable {
-        require(mintPrice == msg.value, "Incorrect payment amount");
+        // require(mintPrice == msg.value, "Incorrect payment amount");
         require(mintOpen, "Minting has ended");
 
         uint256 tokenId = _tokenIdCounter.current();
         require(tokenId < maxSupply, "No more tokens available to mint");
+
+        uint256 price = getMintPrice();
+        require(msg.value == price, "incorrect payment amount");
 
         (bool sent, ) = farmAccount.call{ value: msg.value }("");
         require(sent, "ETH not sent");
@@ -121,6 +132,20 @@ contract ForgottenFruitBottle is ERC721, Ownable {
         }
 
         emit BatchMetadataUpdate(0, _tokenIdCounter.current());
+    }
+
+    /**
+     * @dev Check msg.sender balances to determine discoutnt and mint price
+     *
+     */
+    function getMintPrice() public view returns (uint256 price) {
+        uint256 _price = mintPrice;
+        if (treeNft.balanceOf(msg.sender) > 0) {
+            _price = mintPrice - peachDiscount;
+        } else if (podNft.balanceOf(msg.sender, podTokenId) > 0) {
+            _price = mintPrice - podDiscount;
+        }
+        return _price;
     }
 
     /**
