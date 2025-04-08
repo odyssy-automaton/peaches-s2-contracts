@@ -19,11 +19,8 @@ contract PeachTycoonTreeSeason3 is ReentrancyGuard, ERC721, Ownable {
     address public farmAccount = 0xB1344e792dd923486B7b9665f05454f6A6872A4b; /* Address of farm safe */
     address public farmerCoopAccount = 0xe172278c17F0E58124F2b3201562348FF677c365; /* Address of farmer's coop safe */
     uint256 public maxSupply = 150; /* Max token supply available to mint*/
-    // uint256 public mintPrice = 170000000000000000; /* Mint price of each token */
-    uint256 public mintPrice = 6900000000000000; /* Mint price of each token */
-    // uint256 public erc20MintPrice = 300000000; /* ERC20 Mint price of each token */
+    uint256 public mintPrice = 200000000000000000; /* Mint price of each token */
     uint256 public erc20MintPrice = 300000000; /* ERC20 Mint price of each token */
-
     uint256 public mintDiscountPerc = 10;
     uint256 public farmerCoopCutPerc = 3;
     uint8 public currentSeason = 0; /* seasons for metadata toggle */
@@ -35,11 +32,8 @@ contract PeachTycoonTreeSeason3 is ReentrancyGuard, ERC721, Ownable {
     string[] private critters = ["None", "Bear", "Fox", "Racoon", "Sack", "Squirrel", "Wine Barrel", "Eagle", "Crow"];
     string[] private seasons = ["Winter", "Spring", "Summer", "Harvest"];
 
-    // IERC721 public season2TreeNft = IERC721(0xA9d3c833df8415233e1626F29E33ccBA37d2A187);
-    IERC721 public season2TreeNft = IERC721(0xB49a877D82c1f0133B0293dfd20eB54BEd07a290);
-
-    // IERC20 public paymentERC20 = IERC20(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
-    IERC20 public paymentERC20 = IERC20(0x53c8156592A64E949A4736c6D3309002fa0b2Aba);
+    IERC721 public season2TreeNft = IERC721(0xA9d3c833df8415233e1626F29E33ccBA37d2A187);
+    IERC20 public paymentERC20 = IERC20(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
 
     mapping(uint256 => TokenMeta) public tokenMetas; /*maps `tokenId` to struct details*/
 
@@ -287,12 +281,7 @@ contract PeachTycoonTreeSeason3 is ReentrancyGuard, ERC721, Ownable {
      */
     function subtractPercent(uint256 value, uint256 percentage) internal pure returns (uint256) {
         require(percentage <= 100, "Percentage must be between 0 and 100");
-
-        // Calculate the amount to subtract
-        // Using multiplication before division to maintain precision
         uint256 amountToSubtract = (value * percentage) / 100;
-
-        // Subtract the amount
         return value - amountToSubtract;
     }
 }
