@@ -9,15 +9,15 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract PeachTycoonSprayer is ReentrancyGuard, Initializable, Ownable {
-    string public constant name = "PeachTycoonSprayer";
+    string public constant name = "PeachTycoonSprayerS3";
 
-    uint256 public boostEnd = 1717221600;
-    uint256 public boostPrice = 11000000000000000;
-    uint256 public boostPriceERC20 = 2040000000000000000000;
+    uint256 public boostEnd = 1754008200;
+    uint256 public boostPrice = 10000000000000000;
+    uint256 public boostPriceERC20 = 30000000;
     address public farmAccount = 0xB1344e792dd923486B7b9665f05454f6A6872A4b; /* Address of farm safe */
     address public farmerCoopAccount = 0xe172278c17F0E58124F2b3201562348FF677c365; /* Address of farmer's coop safe */
-    uint256 private farmerCoopCut = 100000000000000; /* Farmer co-op cut */
-    uint256 private farmerCoopCutERC20 = 72000000000000000000; /* Farmer co-op cut */
+    uint256 private farmerCoopCut = 300000000000000; /* Farmer co-op cut */
+    uint256 private farmerCoopCutERC20 = 900000; /* Farmer co-op cut */
     uint256 private lootPerBoost = 33000000000000000000; /* Loot per spray */
     uint256 public attemptsPerToken = 2; /* Attempts per token*/
     uint256 public totalSprayWins = 0; /* Count of all spray wins */
@@ -26,8 +26,8 @@ contract PeachTycoonSprayer is ReentrancyGuard, Initializable, Ownable {
     uint256 private bugs;
 
     IBaal public baal = IBaal(0x1503Bd5f6F082F7fBD36438CC416CD67849c0Bec);
-    IERC721 public treeNft = IERC721(0xA9d3c833df8415233e1626F29E33ccBA37d2A187);
-    IERC20 public paymentERC20 = IERC20(0x4ed4E862860beD51a9570b96d89aF5E1B0Efefed);
+    IERC721 public treeNft = IERC721(0xc9A3102ef6dEb166D607a107892db10Bc50607ad);
+    IERC20 public paymentERC20 = IERC20(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
 
     mapping(uint256 => uint8) public sprayAttempts; /*maps `tokenId` to spray attempt count*/
     mapping(uint256 => uint8) public sprayWins; /*maps `tokenId` to spray win count*/
@@ -114,7 +114,7 @@ contract PeachTycoonSprayer is ReentrancyGuard, Initializable, Ownable {
 
     function roll() private returns (bool) {
         bugs = (bugs + block.timestamp) % 100;
-        return bugs <= 33;
+        return bugs <= 42;
     }
 
     function setPrices(
