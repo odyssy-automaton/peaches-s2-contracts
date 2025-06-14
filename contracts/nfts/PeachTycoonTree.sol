@@ -15,11 +15,11 @@ contract PeachTycoonTreeSeason3 is ReentrancyGuard, ERC721, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
-    uint256 public mintEnd = 1754687716; /* Timestamp for deactivating mint */
+    uint256 public mintEnd = 1754008200; /* Timestamp for deactivating mint */
     address public farmAccount = 0xB1344e792dd923486B7b9665f05454f6A6872A4b; /* Address of farm safe */
     address public farmerCoopAccount = 0xe172278c17F0E58124F2b3201562348FF677c365; /* Address of farmer's coop safe */
     uint256 public maxSupply = 150; /* Max token supply available to mint*/
-    uint256 public mintPrice = 200000000000000000; /* Mint price of each token */
+    uint256 public mintPrice = 170000000000000000; /* Mint price of each token */
     uint256 public erc20MintPrice = 300000000; /* ERC20 Mint price of each token */
     uint256 public mintDiscountPerc = 10;
     uint256 public farmerCoopCutPerc = 3;
@@ -76,12 +76,12 @@ contract PeachTycoonTreeSeason3 is ReentrancyGuard, ERC721, Ownable {
         if (season2TreeNft.balanceOf(msg.sender) > 0) {
             uint256 discountMintPrice = subtractPercent(mintPrice, mintDiscountPerc);
             require(msg.value == discountMintPrice, "incorrect payment amount");
-            farmerCoopCut = subtractPercent(discountMintPrice, farmerCoopCutPerc);
+            amountMinusFee = subtractPercent(discountMintPrice, farmerCoopCutPerc);
         } else {
             require(msg.value == mintPrice, "incorrect eth payment amount");
-            farmerCoopCut = subtractPercent(mintPrice, farmerCoopCutPerc);
+            amountMinusFee = subtractPercent(mintPrice, farmerCoopCutPerc);
         }
-        amountMinusFee = msg.value - farmerCoopCut;
+        farmerCoopCut = msg.value - amountMinusFee;
 
         (bool feeSent, ) = farmerCoopAccount.call{ value: farmerCoopCut }("");
         require(feeSent, "Fee not sent");
@@ -121,12 +121,12 @@ contract PeachTycoonTreeSeason3 is ReentrancyGuard, ERC721, Ownable {
         if (season2TreeNft.balanceOf(msg.sender) > 0) {
             uint256 discountMintPrice = subtractPercent(erc20MintPrice, mintDiscountPerc);
             require(_amount == discountMintPrice, "incorrect payment amount");
-            farmerCoopCut = subtractPercent(discountMintPrice, farmerCoopCutPerc);
+            amountMinusFee = subtractPercent(discountMintPrice, farmerCoopCutPerc);
         } else {
             require(_amount == erc20MintPrice, "incorrect erc20 payment amount");
-            farmerCoopCut = subtractPercent(erc20MintPrice, farmerCoopCutPerc);
+            amountMinusFee = subtractPercent(erc20MintPrice, farmerCoopCutPerc);
         }
-        amountMinusFee = _amount - farmerCoopCut;
+        farmerCoopCut = _amount - amountMinusFee;
 
         require(
             paymentERC20.transferFrom(msg.sender, address(farmerCoopAccount), farmerCoopCut),
@@ -141,19 +141,54 @@ contract PeachTycoonTreeSeason3 is ReentrancyGuard, ERC721, Ownable {
     }
 
     /**
+     * @dev Mints token to address
+     * @param _trunkId id of the trunk type
+     * @param _critterId id of the critter
+     * @param _recipient destination address
+     *
+     *
+     * Requirements:
+     *
+     * - `msg.value` must be exact payment amount in wei
+     * - `mintStart` must be greater than the current block time
+     * - `trunkId` must be less than 2
+     * - `critterId` must be less than 5
+     */
+    function farmerMint(uint8 _trunkId, uint8 _critterId, address _recipient) public onlyOwner {
+        require(mintEnd > block.timestamp, "Minting has ended");
+        require(_trunkId < 3, "Invalid trunk");
+        require(_critterId < 9, "Invalid critter");
+
+        uint256 tokenId = _tokenIdCounter.current();
+        require(tokenId < maxSupply, "No more tokens available to mint");
+
+        _safeMint(_recipient, tokenId + 1);
+        _tokenIdCounter.increment();
+        tokenMetas[tokenId + 1] = TokenMeta(_trunkId, _critterId);
+    }
+
+    /**
      * @dev Sets the price
      * @param _newPrice Price for overiding original price
      * @param _newMintDiscountPerc new percentage for mint discount
      * @param _newFarmerCoopCutPerc Cut perc for overiding original cut
+     * @param _newErc20MintPrice Price for overiding original price
+     *
      *
      *
      * Requirements:
      * - `owner` must be function caller
      */
-    function setPrice(uint256 _newPrice, uint256 _newMintDiscountPerc, uint256 _newFarmerCoopCutPerc) public onlyOwner {
+    function setPrice(
+        uint256 _newPrice,
+        uint256 _newMintDiscountPerc,
+        uint256 _newFarmerCoopCutPerc,
+        uint256 _newErc20MintPrice
+    ) public onlyOwner {
         mintPrice = _newPrice;
         mintDiscountPerc = _newMintDiscountPerc;
         farmerCoopCutPerc = _newFarmerCoopCutPerc;
+        erc20MintPrice = _newErc20MintPrice;
     }
 
     /**
@@ -181,6 +216,17 @@ contract PeachTycoonTreeSeason3 is ReentrancyGuard, ERC721, Ownable {
         currentSeason = _newSeason;
 
         emit BatchMetadataUpdate(1, type(uint256).max);
+    }
+
+    /**
+     * @dev Sets the maxSupply in case peach availability drops
+     * @param _newMaxSupply maxSupply for overiding original maxSupply
+     *
+     * Requirements:
+     * - `owner` must be function caller
+     */
+    function setMaxSupply(uint256 _newMaxSupply) public onlyOwner {
+        maxSupply = _newMaxSupply;
     }
 
     /**
