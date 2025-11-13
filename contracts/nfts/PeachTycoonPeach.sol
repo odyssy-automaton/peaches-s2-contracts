@@ -6,22 +6,22 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract PeachTycoonPeachERC721 is ERC721, Ownable {
+contract PeachTycoonPeachSeason3 is ERC721, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
-    uint256 public redemptionStart = 1721066400; /* Timestamp for activating redemption */
-    uint256 public redemptionEnd = 1725116400; /* Timestamp for deactivating redemption */
+    uint256 public redemptionStart = 1754616667; /* Timestamp for activating redemption */
+    uint256 public redemptionEnd = 1756663881; /* Timestamp for deactivating redemption */
     bool public mintOpen = true;
 
     string private _contractURI =
-        "ipfs://QmazcTRtuwT6XFqaqjZd7xuDmE1p2es8Cngm9otG5fCSYU"; /* URI for the contract metadata */
+        "ipfs://bafkreiawp7b3zhdpd7ivcn6rt4iihygjcvqzj4yvgllgxoy7mfddmnpzom"; /* URI for the contract metadata */
     string private _baseURIBoxed =
-        "ipfs://Qme89C12KE1fSbJYu5kVipYuYcCrhXtqSPh2DaW6oVf5kK"; /* baseURI_ String to prepend to boxed token IDs */
+        "ipfs://bafybeie7hm7ytpm5m4n4sjtpszvprviranpjxzeymxv7qsbvpjklqshdyy"; /* baseURI_ String to prepend to boxed token IDs */
     string private _baseURIUnredeemed =
-        "ipfs://QmXgLFvzKVAkNRLYFeJP9joJjQgQWyxjPrrW9zZxx3rGHQ"; /* baseURI_ String to prepend to unredeemed token IDs */
+        "ipfs://bafybeidp4avdyhhe7yaern5q4s2kf454vhvskciwv7tdfc6dw5nduo4uoy"; /* baseURI_ String to prepend to unredeemed token IDs */
     string private _baseURIRedeemed =
-        "ipfs://QmRTiEfKwqoAJyP8xaAU6LWMDWR3MVsvTZGZPECP6R8N9X"; /* baseURI_ String to prepend to redeemed token IDs */
+        "ipfs://bafybeicfbncfmfdhtqgvir2bye76lpeoqd2khn5k7iz5ejgm7otqfycqa4"; /* baseURI_ String to prepend to redeemed token IDs */
 
     mapping(uint256 => uint8)
         public tokenState; /*  Mapping of tokenID to uint representing state: 0 (boxed), 1 (open), 2 (redeemed) */
